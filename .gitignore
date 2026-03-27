@@ -1,8 +1,10 @@
 # Binaries
 Ditto
 Ditto.exe
+ditto-p.exe
 Ditto-linux
 Ditto-macos
+*.exe
 
 # Go
 go.sum
@@ -10,6 +12,7 @@ go.sum
 # Temp directories
 tmp/
 temp/
+dist/
 
 # IDE
 .vscode/

@@ -86,43 +86,43 @@ changelog:
 # Release configuration
 release:
   github:
-    owner: your-username
+    owner: Ditto-OS
     name: Ditto
-  draft: true
-  prerelease: auto
+  draft: false
+  prerelease: false
   name_template: "v{{ .Version }}"
   header: |
     ## Ditto v{{ .Version }}
-    
+
     A single, portable ~10MB binary that runs code from any language without requiring users to install runtimes.
-    
+
     ### What's New
-    
+
     See the full changelog below for details.
-    
+
     ### Installation
-    
+
     #### Homebrew (macOS/Linux)
     ```bash
-    brew install your-tap/ditto
+    brew install Ditto-OS/tap/ditto
     ```
-    
+
     #### Scoop (Windows)
     ```bash
     scoop install ditto
     ```
-    
+
     #### Manual Download
     Download the appropriate binary for your platform from the assets below.
 
 # Homebrew tap configuration
 brews:
   - name: ditto
-    homepage: https://github.com/your-username/Ditto
+    homepage: https://github.com/Ditto-OS/Ditto
     description: "Run code from any language without installing runtimes"
     license: MIT
     repository:
-      owner: your-username
+      owner: Ditto-OS
       name: homebrew-tap
     folder: Formula
     test: |
@@ -133,11 +133,11 @@ brews:
 # Scoop configuration (Windows package manager)
 scoops:
   - name: ditto
-    homepage: https://github.com/your-username/Ditto
+    homepage: https://github.com/Ditto-OS/Ditto
     description: "Run code from any language without installing runtimes"
     license: MIT
     repository:
-      owner: your-username
+      owner: Ditto-OS
       name: scoop-bucket
     folder: bucket
     test: |
@@ -146,8 +146,8 @@ scoops:
 # Docker images
 dockers:
   - image_templates:
-      - "your-username/ditto:{{ .Version }}-amd64"
-      - "ghcr.io/your-username/ditto:{{ .Version }}-amd64"
+      - "ditto-os/ditto:{{ .Version }}-amd64"
+      - "ghcr.io/ditto-os/ditto:{{ .Version }}-amd64"
     dockerfile: Dockerfile
     use: buildx
     build_flag_templates:

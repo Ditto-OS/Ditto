@@ -9,33 +9,35 @@ on:
     branches: [main, master]
 
 env:
-  CARGO_TERM_COLOR: always
   GO_VERSION: '1.21'
 
 jobs:
   # Build for Windows
   build-windows:
     runs-on: windows-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
-        cache: true
-        
+        cache: false
+
+    - name: Tidy modules
+      run: go mod tidy
+
     - name: Build Windows binary
       run: |
         go build -o Ditto.exe -ldflags "-s -w -X main.version=${{ github.ref_name }}" ./cmd/ditto
-        
+
     - name: Test Windows binary
       run: |
         .\Ditto.exe version
         .\Ditto.exe languages
-        
+
     - name: Upload Windows artifact
       uses: actions/upload-artifact@v4
       with:
@@ -46,27 +48,30 @@ jobs:
   # Build for macOS (Intel)
   build-macos-intel:
     runs-on: macos-13
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
-        cache: true
-        
+        cache: false
+
+    - name: Tidy modules
+      run: go mod tidy
+
     - name: Build macOS Intel binary
       run: |
         go build -o Ditto-macos-amd64 -ldflags "-s -w -X main.version=${{ github.ref_name }}" ./cmd/ditto
-        
+
     - name: Test macOS Intel binary
       run: |
         chmod +x Ditto-macos-amd64
         ./Ditto-macos-amd64 version
         ./Ditto-macos-amd64 languages
-        
+
     - name: Upload macOS Intel artifact
       uses: actions/upload-artifact@v4
       with:
@@ -77,27 +82,30 @@ jobs:
   # Build for macOS (Apple Silicon)
   build-macos-arm:
     runs-on: macos-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
-        cache: true
-        
+        cache: false
+
+    - name: Tidy modules
+      run: go mod tidy
+
     - name: Build macOS ARM binary
       run: |
         go build -o Ditto-macos-arm64 -ldflags "-s -w -X main.version=${{ github.ref_name }}" ./cmd/ditto
-        
+
     - name: Test macOS ARM binary
       run: |
         chmod +x Ditto-macos-arm64
         ./Ditto-macos-arm64 version
         ./Ditto-macos-arm64 languages
-        
+
     - name: Upload macOS ARM artifact
       uses: actions/upload-artifact@v4
       with:
@@ -108,27 +116,30 @@ jobs:
   # Build for Linux
   build-linux:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
-        cache: true
-        
+        cache: false
+
+    - name: Tidy modules
+      run: go mod tidy
+
     - name: Build Linux binary
       run: |
         go build -o Ditto-linux-amd64 -ldflags "-s -w -X main.version=${{ github.ref_name }}" ./cmd/ditto
-        
+
     - name: Test Linux binary
       run: |
         chmod +x Ditto-linux-amd64
         ./Ditto-linux-amd64 version
         ./Ditto-linux-amd64 languages
-        
+
     - name: Upload Linux artifact
       uses: actions/upload-artifact@v4
       with:
@@ -141,37 +152,40 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-windows, build-macos-intel, build-macos-arm, build-linux]
     if: startsWith(github.ref, 'refs/tags/v')
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
-        cache: true
-        
+        cache: false
+
+    - name: Tidy modules
+      run: go mod tidy
+
     - name: Create dist directory
       run: mkdir -p dist
-      
+
     - name: Build all platforms
       run: |
         # Windows
         GOOS=windows GOARCH=amd64 go build -o dist/Ditto-windows-amd64.exe -ldflags "-s -w" ./cmd/ditto
         GOOS=windows GOARCH=arm64 go build -o dist/Ditto-windows-arm64.exe -ldflags "-s -w" ./cmd/ditto
-        
+
         # macOS
         GOOS=darwin GOARCH=amd64 go build -o dist/Ditto-macos-amd64 -ldflags "-s -w" ./cmd/ditto
         GOOS=darwin GOARCH=arm64 go build -o dist/Ditto-macos-arm64 -ldflags "-s -w" ./cmd/ditto
-        
+
         # Linux
         GOOS=linux GOARCH=amd64 go build -o dist/Ditto-linux-amd64 -ldflags "-s -w" ./cmd/ditto
         GOOS=linux GOARCH=arm64 go build -o dist/Ditto-linux-arm64 -ldflags "-s -w" ./cmd/ditto
-        
+
         # Create checksums
         cd dist && sha256sum * > checksums.txt
-        
+
     - name: Upload all artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -184,14 +198,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-cross]
     if: startsWith(github.ref, 'refs/tags/v')
-    
+
     steps:
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       with:
         name: Ditto-all-platforms
         path: dist/
-        
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
@@ -205,20 +219,23 @@ jobs:
   # Run tests
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
-        cache: true
-        
+        cache: false
+
+    - name: Tidy modules
+      run: go mod tidy
+
     - name: Run tests
       run: go test ./...
-      
+
     - name: Build and run examples
       run: |
         go build -o Ditto ./cmd/ditto
@@ -230,17 +247,20 @@ jobs:
   # Code quality checks
   lint:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
         cache: false
-        
+
+    - name: Tidy modules
+      run: go mod tidy
+
     - name: Run go fmt
       run: |
         output=$(gofmt -l .)
@@ -249,11 +269,10 @@ jobs:
           echo "$output"
           exit 1
         fi
-        
+
     - name: Run go vet
       run: go vet ./...
-      
+
     - name: Run go mod tidy check
       run: |
-        go mod tidy
         git diff --exit-code go.mod go.sum || (echo "go.mod/go.sum not tidy" && exit 1)

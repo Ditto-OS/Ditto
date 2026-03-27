@@ -1,0 +1,198 @@
+# .goreleaser.yml
+# Professional release configuration for Ditto
+# Install: go install github.com/goreleaser/goreleaser@latest
+# Run: goreleaser release --rm-dist
+
+project_name: Ditto
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod verify
+
+builds:
+  - id: ditto
+    main: ./cmd/ditto
+    binary: Ditto
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    
+    # Go build targets
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - "7"
+    
+    # Ignore unsupported combinations
+    ignore:
+      - goos: darwin
+        goarch: arm
+      - goos: windows
+        goarch: arm
+
+# Archive configuration
+archives:
+  - id: ditto-archive
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "arm64" }}arm64
+      {{- else if eq .Arch "arm" }}armv7
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - examples/*
+
+# Checksum configuration
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+# Snapshot configuration
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+# Changelog configuration
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^Merge'
+      - '^chore:'
+
+# Release configuration
+release:
+  github:
+    owner: your-username
+    name: Ditto
+  draft: true
+  prerelease: auto
+  name_template: "v{{ .Version }}"
+  header: |
+    ## Ditto v{{ .Version }}
+    
+    A single, portable ~10MB binary that runs code from any language without requiring users to install runtimes.
+    
+    ### What's New
+    
+    See the full changelog below for details.
+    
+    ### Installation
+    
+    #### Homebrew (macOS/Linux)
+    ```bash
+    brew install your-tap/ditto
+    ```
+    
+    #### Scoop (Windows)
+    ```bash
+    scoop install ditto
+    ```
+    
+    #### Manual Download
+    Download the appropriate binary for your platform from the assets below.
+
+# Homebrew tap configuration
+brews:
+  - name: ditto
+    homepage: https://github.com/your-username/Ditto
+    description: "Run code from any language without installing runtimes"
+    license: MIT
+    repository:
+      owner: your-username
+      name: homebrew-tap
+    folder: Formula
+    test: |
+      system "#{bin}/ditto --version"
+    install: |
+      bin.install "Ditto"
+
+# Scoop configuration (Windows package manager)
+scoops:
+  - name: ditto
+    homepage: https://github.com/your-username/Ditto
+    description: "Run code from any language without installing runtimes"
+    license: MIT
+    repository:
+      owner: your-username
+      name: scoop-bucket
+    folder: bucket
+    test: |
+      ditto --version
+
+# Docker images
+dockers:
+  - image_templates:
+      - "your-username/ditto:{{ .Version }}-amd64"
+      - "ghcr.io/your-username/ditto:{{ .Version }}-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description={{ .Description }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.source={{ .GitURL }}"
+
+# Docker manifest for multi-arch images
+docker_manifests:
+  - name_template: "your-username/ditto:{{ .Version }}"
+    image_templates:
+      - "your-username/ditto:{{ .Version }}-amd64"
+      - "your-username/ditto:{{ .Version }}-arm64"
+  - name_template: "your-username/ditto:latest"
+    image_templates:
+      - "your-username/ditto:{{ .Version }}-amd64"
+      - "your-username/ditto:{{ .Version }}-arm64"
+
+# Sign configuration (for macOS notarization)
+signs:
+  - cmd: cosign
+    args:
+      - "sign-blob"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - "--yes"
+    artifacts: all
+    output: true
+
+# SBOM configuration
+sboms:
+  - artifacts: archive
+  - id: source
+    artifacts: source
+
+# Universal binary for macOS (fat binary with both archs)
+universal_binaries:
+  - replace: false
+    name_template: "Ditto-macos-universal"
+
+# Source tarball
+source:
+  enabled: true
+  format: tar.gz
+  name_template: "{{ .ProjectName }}_{{ .Version }}_source"

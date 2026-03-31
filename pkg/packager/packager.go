@@ -20,24 +20,24 @@ import (
 
 const (
 	// Default package registry URLs
-	PyPIRegistryURL    = "https://pypi.org/pypi"
-	NPMRegistryURL     = "https://registry.npmjs.org"
+	PyPIRegistryURL     = "https://pypi.org/pypi"
+	NPMRegistryURL      = "https://registry.npmjs.org"
 	RubyGemsRegistryURL = "https://rubygems.org"
-	CratesRegistryURL  = "https://crates.io"
-	GoProxyURL        = "https://proxy.golang.org"
-	
+	CratesRegistryURL   = "https://crates.io"
+	GoProxyURL          = "https://proxy.golang.org"
+
 	// Package manifest file name
 	ManifestFile = "packages.json"
 )
 
 // PackageRegistry defines supported package registries
 const (
-	RegistryPyPI    = "pypi"
-	RegistryNPM     = "npm"
+	RegistryPyPI     = "pypi"
+	RegistryNPM      = "npm"
 	RegistryRubyGems = "rubygems"
-	RegistryCrates  = "crates"
-	RegistryGo      = "go"
-	RegistryGitHub  = "github"
+	RegistryCrates   = "crates"
+	RegistryGo       = "go"
+	RegistryGitHub   = "github"
 )
 
 // PackageInfo contains metadata about an installed package
@@ -45,7 +45,7 @@ type PackageInfo struct {
 	Name        string    `json:"name"`
 	Version     string    `json:"version"`
 	Language    string    `json:"language"` // "python", "javascript", "ruby", "rust", "go"
-	Registry    string    `json:"registry"`  // "pypi", "npm", "rubygems", "crates", "go", "github"
+	Registry    string    `json:"registry"` // "pypi", "npm", "rubygems", "crates", "go", "github"
 	InstallDate time.Time `json:"install_date"`
 	Path        string    `json:"path"`
 }
@@ -116,9 +116,19 @@ func (p *Packager) fetchGoModule(modulePath string) (*GoModuleInfo, error) {
 	return &info, nil
 }
 
-// detectGitHubLanguage attempts to detect language from GitHub repo name
+// detectGitHubLanguage attempts to detect the primary language from a GitHub repository name
+// using common naming conventions and suffixes.
+//
+// This is a heuristic approach that looks for language-specific suffixes like:
+// -go, _go for Go projects
+// -rs, _rs for Rust projects  
+// -rb, _rb for Ruby projects
+// -py, _py for Python projects
+// -js, _js for JavaScript projects
+//
+// Returns "unknown" if no clear language indicator is found.
 func (p *Packager) detectGitHubLanguage(repo string) string {
-	// Simple heuristic based on common patterns
+	// Simple heuristic based on common naming patterns
 	if strings.Contains(repo, "-go") || strings.Contains(repo, "_go") {
 		return "go"
 	} else if strings.Contains(repo, "-rs") || strings.Contains(repo, "_rs") {
@@ -133,19 +143,26 @@ func (p *Packager) detectGitHubLanguage(repo string) string {
 	return "unknown"
 }
 
-// Stub download methods (would be implemented fully)
+// downloadAndExtractRubyGems downloads and extracts a Ruby gem
+// TODO: Implement full RubyGems download and extraction
 func (p *Packager) downloadAndExtractRubyGems(url, dest string) error {
 	return fmt.Errorf("RubyGems download not yet implemented")
 }
 
+// downloadAndExtractCrates downloads and extracts a Rust crate
+// TODO: Implement full crates.io download and extraction
 func (p *Packager) downloadAndExtractCrates(url, dest string) error {
 	return fmt.Errorf("Crates download not yet implemented")
 }
 
+// downloadGoModule downloads Go module files from the Go proxy
+// TODO: Implement full Go module download and extraction
 func (p *Packager) downloadGoModule(modulePath, version, dest string) error {
 	return fmt.Errorf("Go module download not yet implemented")
 }
 
+// downloadAndExtractGitHub downloads and extracts a GitHub repository
+// TODO: Implement full GitHub repository download and extraction
 func (p *Packager) downloadAndExtractGitHub(url, dest string) error {
 	return fmt.Errorf("GitHub download not yet implemented")
 }
@@ -158,10 +175,10 @@ type PackageManifest struct {
 
 // Packager manages package installation and resolution
 type Packager struct {
-	installDir   string
-	manifest     *PackageManifest
-	httpClient   *http.Client
-	cacheDir     string
+	installDir string
+	manifest   *PackageManifest
+	httpClient *http.Client
+	cacheDir   string
 }
 
 // NewPackager creates a new package manager
@@ -193,7 +210,7 @@ func NewPackager(installDir, cacheDir string) (*Packager, error) {
 // loadManifest loads the package manifest or creates a new one
 func (p *Packager) loadManifest() error {
 	manifestPath := filepath.Join(p.installDir, ManifestFile)
-	
+
 	data, err := os.ReadFile(manifestPath)
 	if os.IsNotExist(err) {
 		p.manifest = &PackageManifest{
@@ -269,7 +286,7 @@ func (p *Packager) InstallWithRegistry(name, registry string) error {
 func (p *Packager) installFromPyPI(name string) error {
 	// Parse package name and version
 	pkgName, version := parsePackageVersion(name)
-	
+
 	// Fetch package info from PyPI
 	info, err := p.fetchPyPIPackage(pkgName, version)
 	if err != nil {
@@ -310,7 +327,7 @@ func (p *Packager) installFromPyPI(name string) error {
 func (p *Packager) installFromRubyGems(name string) error {
 	// Parse package name and version
 	pkgName, version := parsePackageVersion(name)
-	
+
 	// Fetch package info from RubyGems
 	info, err := p.fetchRubyGemsPackage(pkgName, version)
 	if err != nil {
@@ -345,7 +362,7 @@ func (p *Packager) installFromRubyGems(name string) error {
 func (p *Packager) installFromCrates(name string) error {
 	// Parse package name and version
 	pkgName, version := parsePackageVersion(name)
-	
+
 	// Fetch crate info from crates.io
 	info, err := p.fetchCratesPackage(pkgName, version)
 	if err != nil {
@@ -531,9 +548,9 @@ func (p *Packager) fetchPyPIPackage(name, version string) (*PyPIPackageInfo, err
 	}
 
 	return &PyPIPackageInfo{
-		Name:        pypiResp.Info.Name,
-		Version:     pypiResp.Info.Version,
-		URL:         downloadURL,
+		Name:    pypiResp.Info.Name,
+		Version: pypiResp.Info.Version,
+		URL:     downloadURL,
 	}, nil
 }
 
@@ -552,7 +569,7 @@ func (p *Packager) downloadAndExtractPyPI(url, destPath string) error {
 	}
 
 	filename := filepath.Base(url)
-	
+
 	// Handle different archive types
 	if strings.HasSuffix(filename, ".whl") || strings.HasSuffix(filename, ".zip") {
 		return p.extractWheel(data, destPath)
@@ -577,9 +594,9 @@ func (p *Packager) extractWheel(data []byte, destPath string) error {
 		}
 
 		// Only extract Python source files
-		if !strings.HasSuffix(file.Name, ".py") && 
-		   !strings.HasSuffix(file.Name, ".pyi") &&
-		   file.Name != "py.typed" {
+		if !strings.HasSuffix(file.Name, ".py") &&
+			!strings.HasSuffix(file.Name, ".pyi") &&
+			file.Name != "py.typed" {
 			continue
 		}
 
@@ -635,7 +652,7 @@ func (p *Packager) extractTarGz(data []byte, destPath string) error {
 // installFromNPM installs a JavaScript package from npm
 func (p *Packager) installFromNPM(name string) error {
 	pkgName, version := parsePackageVersion(name)
-	
+
 	// Fetch package info from npm
 	info, err := p.fetchNPMPackage(pkgName, version)
 	if err != nil {
@@ -674,7 +691,7 @@ type NPMPackageInfo struct {
 // fetchNPMPackage fetches package info from npm
 func (p *Packager) fetchNPMPackage(name, version string) (*NPMPackageInfo, error) {
 	url := fmt.Sprintf("%s/%s", NPMRegistryURL, name)
-	
+
 	resp, err := p.httpClient.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch from npm: %w", err)
@@ -700,7 +717,7 @@ func (p *Packager) fetchNPMPackage(name, version string) (*NPMPackageInfo, error
 	if versionStr == "" {
 		versionStr = "latest"
 	}
-	
+
 	// Get latest version if "latest" requested or no version specified
 	if versionStr == "latest" {
 		distTags, ok := npmResp["dist-tags"].(map[string]interface{})
@@ -829,7 +846,7 @@ func GetSystemCacheDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	// Use OS-specific cache directories
 	var cacheBase string
 	switch runtime.GOOS {
@@ -846,6 +863,6 @@ func GetSystemCacheDir() (string, error) {
 			cacheBase = filepath.Join(homeDir, ".cache")
 		}
 	}
-	
+
 	return filepath.Join(cacheBase, "ditto"), nil
 }

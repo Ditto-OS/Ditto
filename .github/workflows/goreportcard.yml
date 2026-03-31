@@ -1,0 +1,26 @@
+name: Go Report Card
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: '0 0 * * *'
+
+jobs:
+  golangci:
+    name: Go Report Card
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Run Go Report Card
+      uses: creekorful/goreportcard-action@v1.0
+      with:
+        args: -timeout 5m
+      env:
+        # Optional: Set a GitHub token if you want to comment on PRs
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

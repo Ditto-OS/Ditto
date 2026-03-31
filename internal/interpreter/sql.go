@@ -3,6 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"regexp"
 	"strconv"
 	"strings"
@@ -23,7 +24,7 @@ func (s *SQLInterpreter) Name() string {
 	return "sql"
 }
 
-func (s *SQLInterpreter) Execute(code string, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
+func (s *SQLInterpreter) Execute(engine *Engine, code string, args []string, stdin io.Reader, stdout, stderr io.Writer, vfs fs.FS) error {
 	s.tables = make(map[string]*sqlTable)
 
 	// Remove single-line comments (-- style)

@@ -1,0 +1,1 @@
+print("Direct Hello")

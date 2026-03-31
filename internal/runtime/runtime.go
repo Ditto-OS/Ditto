@@ -91,6 +91,15 @@ func (m *Manager) DownloadWASMRuntime(src WASMRuntimeSource) (string, error) {
 	return wasmPath, nil
 }
 
+// LoadWASM loads a WASM runtime binary from disk
+func (m *Manager) LoadWASM(name string) ([]byte, error) {
+	wasmPath := filepath.Join(m.config.RuntimesDir, name+".wasm")
+	if _, err := os.Stat(wasmPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("WASM runtime %s not found", name)
+	}
+	return os.ReadFile(wasmPath)
+}
+
 // SaveMetadata saves runtime metadata
 func (m *Manager) SaveMetadata(info config.RuntimeInfo) error {
 	metaPath := filepath.Join(m.config.RuntimesDir, "metadata.json")

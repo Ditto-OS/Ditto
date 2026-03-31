@@ -3,6 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -18,7 +19,7 @@ func (c *CInterpreter) Name() string {
 	return "c"
 }
 
-func (c *CInterpreter) Execute(code string, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
+func (c *CInterpreter) Execute(engine *Engine, code string, args []string, stdin io.Reader, stdout, stderr io.Writer, vfs fs.FS) error {
 	// Try to find a C compiler
 	compiler := findCCompiler()
 	if compiler == "" {

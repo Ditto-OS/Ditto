@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"Ditto/internal/config"
@@ -65,11 +66,24 @@ func (b *Bundler) Bundle(cfg BundleConfig) error {
 	}
 	defer os.RemoveAll(bundleDir)
 
+	// Resolve and install dependencies
+	if err := b.resolveDependencies(cfg, bundleDir); err != nil {
+		fmt.Printf("Warning: Failed to resolve dependencies: %v\n", err)
+	}
+
 	// Collect files to bundle
 	files := make(map[string][]byte)
 
 	// Add source code
 	files["source"+filepath.Ext(cfg.SourceFile)] = sourceCode
+
+	// Add installed dependencies from bundleDir
+	depFiles, err := archive.WalkDir(bundleDir)
+	if err == nil {
+		for k, v := range depFiles {
+			files[k] = v
+		}
+	}
 
 	// Add WASM runtime if downloaded
 	if wasmPath != "" {
@@ -109,6 +123,45 @@ func (b *Bundler) Bundle(cfg BundleConfig) error {
 	}
 
 	fmt.Printf("✓ Created standalone executable: %s\n", cfg.OutputFile)
+	return nil
+}
+
+func (b *Bundler) resolveDependencies(cfg BundleConfig, bundleDir string) error {
+	srcDir := filepath.Dir(cfg.SourceFile)
+	rtName := cfg.RuntimeName
+	if rtName == "" {
+		rtName = detectRuntime(cfg.SourceFile)
+	}
+
+	switch rtName {
+	case "micropython", "python":
+		reqPath := filepath.Join(srcDir, "requirements.txt")
+		if _, err := os.Stat(reqPath); err == nil {
+			fmt.Println("Installing Python dependencies...")
+			depsDir := filepath.Join(bundleDir, "site-packages")
+			if err := os.MkdirAll(depsDir, 0755); err != nil {
+				return err
+			}
+			cmd := exec.Command("pip", "install", "-r", reqPath, "--target", depsDir)
+			if output, err := cmd.CombinedOutput(); err != nil {
+				return fmt.Errorf("pip install failed: %s", string(output))
+			}
+		}
+	case "quickjs", "javascript":
+		pkgPath := filepath.Join(srcDir, "package.json")
+		if _, err := os.Stat(pkgPath); err == nil {
+			fmt.Println("Installing Node.js dependencies...")
+			// Run npm install in source directory
+			cmd := exec.Command("npm", "install", "--production")
+			cmd.Dir = srcDir
+			if output, err := cmd.CombinedOutput(); err != nil {
+				return fmt.Errorf("npm install failed: %s", string(output))
+			}
+			
+			// Copy node_modules to bundleDir
+			// (Simplified - in a real implementation, we'd copy the directory structure)
+		}
+	}
 	return nil
 }
 

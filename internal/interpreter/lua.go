@@ -3,6 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,7 +16,7 @@ func (l *LuaInterpreter) Name() string {
 	return "lua"
 }
 
-func (l *LuaInterpreter) Execute(code string, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
+func (l *LuaInterpreter) Execute(engine *Engine, code string, args []string, stdin io.Reader, stdout, stderr io.Writer, vfs fs.FS) error {
 	lua := &luaVM{
 		variables: make(map[string]interface{}),
 		functions: make(map[string]*luaFunction),

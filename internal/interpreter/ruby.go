@@ -3,6 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,7 +16,7 @@ func (r *RubyInterpreter) Name() string {
 	return "ruby"
 }
 
-func (r *RubyInterpreter) Execute(code string, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
+func (r *RubyInterpreter) Execute(engine *Engine, code string, args []string, stdin io.Reader, stdout, stderr io.Writer, vfs fs.FS) error {
 	ruby := &rubyVM{
 		variables: make(map[string]interface{}),
 		methods:   make(map[string]*rubyMethod),

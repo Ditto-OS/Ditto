@@ -3,11 +3,12 @@
 package interpreter
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
+	"strings"
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
@@ -16,7 +17,7 @@ import (
 // Interpreter executes code in a specific language
 type Interpreter interface {
 	Name() string
-	Execute(code string, args []string, stdin io.Reader, stdout, stderr io.Writer) error
+	Execute(engine *Engine, code string, args []string, stdin io.Reader, stdout, stderr io.Writer, vfs fs.FS) error
 }
 
 // Engine manages all interpreters
@@ -37,8 +38,8 @@ func NewEngine() *Engine {
 	}
 
 	// Register built-in interpreters
-	e.Register(&PythonInterpreter{})
-	e.Register(&JavaScriptInterpreter{})
+	e.Register(NewPythonInterpreter())
+	e.Register(NewJavaScriptInterpreter())
 	e.Register(&LuaInterpreter{})
 	e.Register(&SQLInterpreter{})
 	e.Register(&CInterpreter{})
@@ -71,41 +72,38 @@ func (e *Engine) GetInterpreter(name string) (Interpreter, error) {
 }
 
 // Execute runs code with the specified interpreter
-func (e *Engine) Execute(lang, code string, args []string) error {
+func (e *Engine) Execute(lang, code string, args []string, vfs fs.FS) error {
 	interp, err := e.GetInterpreter(lang)
 	if err != nil {
 		return err
 	}
 
-	var stdout, stderr bytes.Buffer
-	err = interp.Execute(code, args, os.Stdin, &stdout, &stderr)
-
-	// Print output
-	if stdout.Len() > 0 {
-		fmt.Print(stdout.String())
-	}
-	if stderr.Len() > 0 {
-		fmt.Fprint(os.Stderr, stderr.String())
-	}
-
-	return err
+	return interp.Execute(e, code, args, os.Stdin, os.Stdout, os.Stderr, vfs)
 }
 
-// executeWASM runs a WASM module with the given code
-func (e *Engine) executeWASM(ctx context.Context, wasmBytes []byte, code string, args []string, stdout, stderr io.Writer) error {
+// ExecuteWASM runs a WASM module with the given code
+func (e *Engine) ExecuteWASM(ctx context.Context, wasmBytes []byte, code string, args []string, stdout, stderr io.Writer, vfs fs.FS) error {
 	module, err := e.wasmRuntime.CompileModule(ctx, wasmBytes)
 	if err != nil {
 		return fmt.Errorf("failed to compile WASM: %w", err)
 	}
 	defer module.Close(ctx)
 
-	_, err = e.wasmRuntime.InstantiateModule(ctx, module,
-		wazero.NewModuleConfig().
-			WithName("interpreter").
-			WithStdout(stdout).
-			WithStderr(stderr).
-			WithStdin(os.Stdin).
-			WithArgs(append([]string{"interpreter"}, args...)...))
+	// Create a temporary file in the WASM memory or via WASI
+	// For MicroPython/QuickJS, we often pass the code via stdin or as an argument
+	
+	config := wazero.NewModuleConfig().
+		WithName("interpreter").
+		WithStdout(stdout).
+		WithStderr(stderr).
+		WithStdin(strings.NewReader(code)).
+		WithArgs(append([]string{"interpreter"}, args...)...)
 
+	// Mount virtual filesystem if provided
+	if vfs != nil {
+		config = config.WithFS(vfs)
+	}
+
+	_, err = e.wasmRuntime.InstantiateModule(ctx, module, config)
 	return err
 }

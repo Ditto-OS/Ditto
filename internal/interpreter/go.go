@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io"
+	"io/fs"
 	"strings"
 )
 
@@ -16,7 +17,7 @@ func (g *GoInterpreter) Name() string {
 	return "go"
 }
 
-func (g *GoInterpreter) Execute(code string, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
+func (g *GoInterpreter) Execute(engine *Engine, code string, args []string, stdin io.Reader, stdout, stderr io.Writer, vfs fs.FS) error {
 	// Parse the Go code
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "main.go", code, parser.AllErrors)

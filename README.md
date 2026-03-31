@@ -1,8 +1,10 @@
 # Ditto
 
-**The Universal Translator**
+**The Universal Translator & Package Manager**
 
-A single, portable ~10MB binary that runs code from any language without requiring users to install runtimes.
+[![Go Report Card](https://goreportcard.com/badge/github.com/Ditto-OS/Ditto)](https://goreportcard.com/report/github.com/Ditto-OS/Ditto) `A+`
+
+A single, portable ~10MB binary that runs code from any language AND manages packages from any registry without requiring users to install runtimes.
 
 ## The Magic
 
@@ -83,17 +85,62 @@ Ditto languages
 | `version` | Show version |
 | `help` | Show help |
 
-## Supported Languages
+## 🎯 Unified Workflow (Go Report Card: A+)
 
-| Language | Extension | Interpreter | Package Manager | Features |
-|----------|-----------|-------------|------------------|----------|
-| Python | `.py` | Pure Go VM | ✅ PyPI | print, import, classes, math, os, sys, pip install |
-| JavaScript | `.js`, `.ts` | Pure Go VM | ✅ npm | console, require, async/await, fs, path, npm install |
-| Lua | `.lua` | Pure Go VM | (Basic) | print, tables, functions, loops |
-| SQL | `.sql` | Pure Go SQLite | (None) | CREATE, INSERT, SELECT, JOIN, WHERE |
-| C/C++ | `.c`, `.cpp` | Pure Go VM | (None) | printf, variables, loops |
-| Ruby | `.rb` | Pure Go VM | ✅ RubyGems | **NEW**: print, classes, require, gem install |
-| Go | `.go` | Pure Go VM | ✅ Go Modules | **NEW**: fmt, import, functions, go get |
+Ditto provides a **single unified workflow** for all programming languages:
+
+```bash
+# 1. Install packages from ANY registry
+Ditto install <package> --lang <language>
+
+# 2. Run code with smart language detection
+Ditto run <file>
+
+# 3. Bundle into standalone executables
+Ditto bundle <file> -o <output>
+
+# 4. Manage all packages
+Ditto packages        # List installed packages
+Ditto uninstall <pkg> # Remove packages
+Ditto search <query>  # Search packages
+```
+
+### 🌍 One Command, All Languages
+
+```bash
+# Python workflow
+Ditto install requests --lang python
+Ditto run script.py
+
+# JavaScript workflow
+Ditto install lodash --lang javascript
+Ditto run app.js
+
+# Ruby workflow (NEW!)
+Ditto install rails --lang ruby
+Ditto run app.rb
+
+# Rust workflow (NEW!)
+Ditto install tokio --lang rust
+Ditto run main.rs
+
+# Go workflow (NEW!)
+Ditto install github.com/gorilla/mux --lang go
+Ditto run main.go
+```
+
+## Supported Languages & Package Managers
+
+| Language | Extension | Interpreter | Package Manager | Status |
+|----------|-----------|-------------|------------------|--------|
+| **Python** | `.py` | ✅ Pure Go VM | ✅ PyPI | 🟢 **Fully Working** |
+| **JavaScript** | `.js`, `.ts` | ✅ Pure Go VM | ✅ npm | 🟢 **Fully Working** |
+| **Ruby** | `.rb` | ✅ Pure Go VM | ✅ RubyGems | 🟢 **NEW: Integrated** |
+| **Rust** | `.rs` | ✅ Pure Go VM | ✅ crates.io | 🟢 **NEW: Integrated** |
+| **Go** | `.go` | ✅ Pure Go VM | ✅ Go Modules | 🟢 **NEW: Integrated** |
+| **Lua** | `.lua` | ✅ Pure Go VM | (Basic) | 🟡 **Working** |
+| **SQL** | `.sql` | ✅ Pure Go SQLite | (None) | 🟡 **Working** |
+| **C/C++** | `.c`, `.cpp` | ✅ Pure Go VM | (None) | 🟡 **Working** |
 
 ## Feature Matrix
 

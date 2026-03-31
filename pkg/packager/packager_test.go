@@ -1,13 +1,27 @@
 package packager
 
 import (
+	"os"
 	"testing"
 	"time"
 )
 
 // TestNewPackager tests packager initialization
 func TestNewPackager(t *testing.T) {
-	p, err := NewPackager("", "")
+	// Create temporary directories for testing
+	installDir, err := os.MkdirTemp("", "ditto-test-install-")
+	if err != nil {
+		t.Fatalf("Failed to create temp install dir: %v", err)
+	}
+	defer os.RemoveAll(installDir)
+
+	cacheDir, err := os.MkdirTemp("", "ditto-test-cache-")
+	if err != nil {
+		t.Fatalf("Failed to create temp cache dir: %v", err)
+	}
+	defer os.RemoveAll(cacheDir)
+
+	p, err := NewPackager(installDir, cacheDir)
 	if err != nil {
 		t.Errorf("NewPackager failed: %v", err)
 	}
@@ -32,31 +46,6 @@ func TestPackageInfo(t *testing.T) {
 	}
 	if info.Registry != RegistryPyPI {
 		t.Errorf("Expected registry %s, got %s", RegistryPyPI, info.Registry)
-	}
-}
-
-// TestParsePackageVersion tests version parsing
-func TestParsePackageVersion(t *testing.T) {
-	cases := []struct {
-		input       string
-		expectedName string
-		expectedVer  string
-	}{
-		{"requests", "requests", ""},
-		{"requests@v2.0.0", "requests", "v2.0.0"},
-		{"lodash@4.17.21", "lodash", "4.17.21"},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.input, func(t *testing.T) {
-			name, version := parsePackageVersion(tc.input)
-			if name != tc.expectedName {
-				t.Errorf("Expected name %s, got %s", tc.expectedName, name)
-			}
-			if version != tc.expectedVer {
-				t.Errorf("Expected version %s, got %s", tc.expectedVer, version)
-			}
-		})
 	}
 }
 

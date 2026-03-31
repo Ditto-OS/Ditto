@@ -90,7 +90,7 @@ func (j *JavaScriptInterpreter) executeWASM(engine *Engine, code string, args []
 	// For now, fall back to pure Go interpreter
 	// The WASM infrastructure is in place for future enhancement
 	_ = wasmModule
-	
+
 	return fmt.Errorf("QuickJS WASM requires WASI filesystem setup - using pure Go interpreter with package support")
 }
 
@@ -99,11 +99,11 @@ func (j *JavaScriptInterpreter) executePureGo(code string, args []string, stdin 
 		variables: make(map[string]interface{}),
 		functions: make(map[string]*jsFunction),
 		modules:   make(map[string]map[string]interface{}),
-		stdin:   stdin,
-		stdout:  stdout,
-		stderr:  stderr,
-		args:    args,
-		vfs:     vfs,
+		stdin:     stdin,
+		stdout:    stdout,
+		stderr:    stderr,
+		args:      args,
+		vfs:       vfs,
 	}
 	js.stdlib = stdlib.NewNodeStdLib()
 
@@ -256,7 +256,7 @@ func (vm *jsVM) handleConsoleLog(expr string) error {
 	if match := regexp.MustCompile(`^(\w+)\.(\w+)\(([^)]*)\)$`).FindStringSubmatch(expr); match != nil {
 		return vm.handleModuleCall(match[1], match[2], match[3])
 	}
-	
+
 	// Handle typeof expressions
 	if match := regexp.MustCompile(`^typeof\s+(\w+)$`).FindStringSubmatch(expr); match != nil {
 		varName := match[1]
@@ -277,14 +277,14 @@ func (vm *jsVM) handleConsoleLog(expr string) error {
 		fmt.Fprintln(vm.stdout, "undefined")
 		return nil
 	}
-	
+
 	// Handle string concatenation
 	if strings.Contains(expr, "+") && (strings.HasPrefix(expr, `"`) || strings.Contains(expr, `"`)) {
 		result := vm.evalStringConcat(expr)
 		fmt.Fprintln(vm.stdout, result)
 		return nil
 	}
-	
+
 	result, err := vm.evaluate(expr)
 	if err != nil {
 		return err
@@ -459,7 +459,7 @@ func (vm *jsVM) loadModuleFromVFS(moduleName, modulePath string) error {
 
 	// Create a module scope
 	moduleExports := make(map[string]interface{})
-	
+
 	// Create a simplified require for nested imports
 	moduleRequire := func(name string) map[string]interface{} {
 		// Check stdlib first
@@ -479,12 +479,12 @@ func (vm *jsVM) loadModuleFromVFS(moduleName, modulePath string) error {
 
 	vm.modules[moduleName] = moduleExports
 	vm.variables[moduleName] = moduleExports
-	
+
 	// Execute the module code in a simplified way
 	// This is a placeholder - full execution would need proper JS VM
 	_ = content
 	_ = moduleObj
-	
+
 	return nil
 }
 

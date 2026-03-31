@@ -18,10 +18,10 @@ const (
 	// Pyodide WASM runtime for full Python support
 	// Pyodide is CPython compiled to WebAssembly
 	PyodideURL = "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.asm.wasm"
-	
+
 	// WasmEdge QuickJS WASI runtime for full JavaScript support
 	QuickJSURL = "https://github.com/second-state/wasmedge-quickjs/releases/download/v0.5.0-alpha/wasmedge_quickjs.wasm"
-	
+
 	// Cache directory
 	CacheDirName = "ditto-wasm-cache"
 )
@@ -92,7 +92,7 @@ func getCacheDir() (string, error) {
 // Downloads and caches if not already present
 func (m *RuntimeManager) GetPyodideWASM() ([]byte, error) {
 	wasmPath := filepath.Join(m.cacheDir, "pyodide.wasm")
-	
+
 	// Try to load from cache
 	if data, err := os.ReadFile(wasmPath); err == nil {
 		return data, nil
@@ -118,7 +118,7 @@ func (m *RuntimeManager) GetPyodideWASM() ([]byte, error) {
 // Downloads and caches if not already present
 func (m *RuntimeManager) GetQuickJSWASM() ([]byte, error) {
 	wasmPath := filepath.Join(m.cacheDir, "quickjs.wasm")
-	
+
 	// Try to load from cache
 	if data, err := os.ReadFile(wasmPath); err == nil {
 		return data, nil
@@ -214,9 +214,9 @@ func VerifySHA256(data []byte, expected string) bool {
 
 // DownloadProgress wraps an io.Reader with progress reporting
 type DownloadProgress struct {
-	reader   io.Reader
-	total    int64
-	current  int64
+	reader    io.Reader
+	total     int64
+	current   int64
 	lastPrint time.Time
 }
 
@@ -227,7 +227,7 @@ func (p *DownloadProgress) Read(buf []byte) (int, error) {
 	// Print progress every 500ms
 	if time.Since(p.lastPrint) > 500*time.Millisecond {
 		percent := float64(p.current) / float64(p.total) * 100
-		fmt.Printf("\r  Downloading: %.1f%% (%d/%d bytes)", 
+		fmt.Printf("\r  Downloading: %.1f%% (%d/%d bytes)",
 			percent, p.current, p.total)
 		p.lastPrint = time.Now()
 	}

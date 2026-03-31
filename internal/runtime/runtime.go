@@ -58,7 +58,7 @@ func (m *Manager) GetWASMRuntimes() []WASMRuntimeSource {
 // DownloadWASMRuntime downloads a WASM runtime
 func (m *Manager) DownloadWASMRuntime(src WASMRuntimeSource) (string, error) {
 	wasmPath := filepath.Join(m.config.RuntimesDir, src.Name+".wasm")
-	
+
 	if _, err := os.Stat(wasmPath); err == nil {
 		return wasmPath, nil
 	}

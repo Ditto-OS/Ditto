@@ -157,7 +157,7 @@ func (b *Bundler) resolveDependencies(cfg BundleConfig, bundleDir string) error 
 			if output, err := cmd.CombinedOutput(); err != nil {
 				return fmt.Errorf("npm install failed: %s", string(output))
 			}
-			
+
 			// Copy node_modules to bundleDir
 			// (Simplified - in a real implementation, we'd copy the directory structure)
 		}

@@ -80,11 +80,11 @@ func (p *PythonInterpreter) executePureGo(code string, args []string, stdin io.R
 		functions: make(map[string]*pythonFunction),
 		classes:   make(map[string]*pythonClass),
 		stdlib:    stdlib.NewPythonStdLib(),
-		stdin:    stdin,
-		stdout:   stdout,
-		stderr:   stderr,
-		args:     args,
-		vfs:      vfs,
+		stdin:     stdin,
+		stdout:    stdout,
+		stderr:    stderr,
+		args:      args,
+		vfs:       vfs,
 	}
 	py.stdlib.Init()
 

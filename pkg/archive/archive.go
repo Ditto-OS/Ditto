@@ -67,7 +67,7 @@ func ExtractBundle(archivePath, destDir string) error {
 		}
 
 		target := filepath.Join(destDir, header.Name)
-		
+
 		// Ensure parent directory exists
 		if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
 			return err
@@ -131,7 +131,7 @@ func ExtractZip(zipPath, destDir string) error {
 
 	for _, f := range r.File {
 		target := filepath.Join(destDir, f.Name)
-		
+
 		// Handle directories
 		if f.FileInfo().IsDir() {
 			if err := os.MkdirAll(target, 0755); err != nil {
@@ -171,12 +171,12 @@ func ExtractZip(zipPath, destDir string) error {
 // WalkDir walks a directory and returns file contents map
 func WalkDir(root string) (map[string][]byte, error) {
 	files := make(map[string][]byte)
-	
+
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		
+
 		if d.IsDir() {
 			return nil
 		}
@@ -185,18 +185,18 @@ func WalkDir(root string) (map[string][]byte, error) {
 		if err != nil {
 			return err
 		}
-		
+
 		// Normalize path separators
 		relPath = strings.ReplaceAll(relPath, "\\", "/")
-		
+
 		content, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
-		
+
 		files[relPath] = content
 		return nil
 	})
-	
+
 	return files, err
 }

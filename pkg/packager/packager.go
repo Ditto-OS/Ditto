@@ -121,7 +121,7 @@ func (p *Packager) fetchGoModule(modulePath string) (*GoModuleInfo, error) {
 //
 // This is a heuristic approach that looks for language-specific suffixes like:
 // -go, _go for Go projects
-// -rs, _rs for Rust projects  
+// -rs, _rs for Rust projects
 // -rb, _rb for Ruby projects
 // -py, _py for Python projects
 // -js, _js for JavaScript projects

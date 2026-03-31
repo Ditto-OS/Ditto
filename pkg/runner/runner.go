@@ -122,7 +122,7 @@ func (r *Runner) runBundle(cfg RunConfig) error {
 
 	// Create a VFS from the extracted directory
 	vfs := os.DirFS(tmpDir)
-	
+
 	return r.engine.Execute(lang, string(sourceCode), cfg.Args, vfs)
 }
 

@@ -20,10 +20,10 @@ func (r *RubyInterpreter) Execute(engine *Engine, code string, args []string, st
 	ruby := &rubyVM{
 		variables: make(map[string]interface{}),
 		methods:   make(map[string]*rubyMethod),
-		stdin:   stdin,
-		stdout:  stdout,
-		stderr:  stderr,
-		args:    args,
+		stdin:     stdin,
+		stdout:    stdout,
+		stderr:    stderr,
+		args:      args,
 	}
 
 	return ruby.Run(code)
@@ -53,7 +53,7 @@ func (vm *rubyVM) executeLines(lines []string) error {
 	i := 0
 	for i < len(lines) {
 		line := strings.TrimSpace(lines[i])
-		
+
 		// Skip empty lines and comments
 		if line == "" || strings.HasPrefix(line, "#") {
 			i++

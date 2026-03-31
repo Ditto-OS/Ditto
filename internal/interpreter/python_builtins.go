@@ -113,7 +113,7 @@ func (vm *pythonVM) callFunction(fn *pythonFunction, argsStr string) error {
 func (vm *pythonVM) callPythonFunction(fn *pythonFunction, argsStr string) (interface{}, error) {
 	// Parse arguments
 	args := vm.parseArgs(argsStr)
-	
+
 	// Create a new scope for the function
 	funcVM := &pythonVM{
 		variables: make(map[string]interface{}),
@@ -125,7 +125,7 @@ func (vm *pythonVM) callPythonFunction(fn *pythonFunction, argsStr string) (inte
 		stderr:    vm.stderr,
 		vfs:       vm.vfs,
 	}
-	
+
 	// Bind arguments to parameters (simplified - just bind by position)
 	for i, param := range fn.params {
 		param = strings.TrimSpace(param)
@@ -141,7 +141,7 @@ func (vm *pythonVM) callPythonFunction(fn *pythonFunction, argsStr string) (inte
 			funcVM.variables[param] = args[i]
 		}
 	}
-	
+
 	// Execute function body line by line
 	lines := strings.Split(fn.body, "\n")
 	var lastResult interface{}
@@ -155,7 +155,7 @@ func (vm *pythonVM) callPythonFunction(fn *pythonFunction, argsStr string) (inte
 		}
 
 		fmt.Fprintf(os.Stderr, "[DEBUG] func line (%d): %s\n", i, line)
-		
+
 		// Handle return statement
 		if strings.HasPrefix(line, "return ") {
 			returnExpr := strings.TrimPrefix(line, "return ")
@@ -194,7 +194,7 @@ func (vm *pythonVM) callPythonFunction(fn *pythonFunction, argsStr string) (inte
 			continue
 		}
 	}
-	
+
 	// Return nil for functions without explicit return
 	return lastResult, nil
 }

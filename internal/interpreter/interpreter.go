@@ -22,8 +22,8 @@ type Interpreter interface {
 
 // Engine manages all interpreters
 type Engine struct {
-	wasmRuntime   wazero.Runtime
-	interpreters  map[string]Interpreter
+	wasmRuntime  wazero.Runtime
+	interpreters map[string]Interpreter
 }
 
 // NewEngine creates a new execution engine
@@ -91,7 +91,7 @@ func (e *Engine) ExecuteWASM(ctx context.Context, wasmBytes []byte, code string,
 
 	// Create a temporary file in the WASM memory or via WASI
 	// For MicroPython/QuickJS, we often pass the code via stdin or as an argument
-	
+
 	config := wazero.NewModuleConfig().
 		WithName("interpreter").
 		WithStdout(stdout).

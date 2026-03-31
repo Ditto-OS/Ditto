@@ -64,10 +64,10 @@ func (c *CInterpreter) executePureGo(code string, args []string, stdin io.Reader
 	// Simplified C-like execution for basic programs
 	cvm := &cVM{
 		variables: make(map[string]interface{}),
-		stdin:   stdin,
-		stdout:  stdout,
-		stderr:  stderr,
-		args:    args,
+		stdin:     stdin,
+		stdout:    stdout,
+		stderr:    stderr,
+		args:      args,
 	}
 
 	return cvm.Run(code)

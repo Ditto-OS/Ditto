@@ -31,7 +31,7 @@ func (s *SQLInterpreter) Execute(engine *Engine, code string, args []string, std
 	code = regexp.MustCompile(`(?m)--.*$`).ReplaceAllString(code, "")
 	// Remove multi-line comments (/* */ style)
 	code = regexp.MustCompile(`(?s)/\*.*?\*/`).ReplaceAllString(code, "")
-	
+
 	// Normalize whitespace
 	code = strings.ReplaceAll(code, "\n", " ")
 	code = regexp.MustCompile(`\s+`).ReplaceAllString(code, " ")

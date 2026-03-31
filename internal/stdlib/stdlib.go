@@ -45,16 +45,16 @@ func (p *PythonStdLib) GetBuiltin(name string) interface{} {
 
 func (p *PythonStdLib) initMath() {
 	p.modules["math"] = map[string]interface{}{
-		"sqrt": func(x float64) float64 { return math.Sqrt(x) },
-		"pow":  func(x, y float64) float64 { return math.Pow(x, y) },
-		"ceil": func(x float64) float64 { return math.Ceil(x) },
+		"sqrt":  func(x float64) float64 { return math.Sqrt(x) },
+		"pow":   func(x, y float64) float64 { return math.Pow(x, y) },
+		"ceil":  func(x float64) float64 { return math.Ceil(x) },
 		"floor": func(x float64) float64 { return math.Floor(x) },
-		"abs":  func(x float64) float64 { return math.Abs(x) },
-		"sin":  func(x float64) float64 { return math.Sin(x) },
-		"cos":  func(x float64) float64 { return math.Cos(x) },
-		"tan":  func(x float64) float64 { return math.Tan(x) },
-		"pi":   math.Pi,
-		"e":    math.E,
+		"abs":   func(x float64) float64 { return math.Abs(x) },
+		"sin":   func(x float64) float64 { return math.Sin(x) },
+		"cos":   func(x float64) float64 { return math.Cos(x) },
+		"tan":   func(x float64) float64 { return math.Tan(x) },
+		"pi":    math.Pi,
+		"e":     math.E,
 	}
 }
 
@@ -69,11 +69,18 @@ func (p *PythonStdLib) initOS() {
 		"exists":   func(path string) bool { _, err := os.Stat(path); return err == nil },
 		"isfile":   func(path string) bool { info, err := os.Stat(path); return err == nil && !info.IsDir() },
 		"isdir":    func(path string) bool { info, err := os.Stat(path); return err == nil && info.IsDir() },
-		"listdir":  func(path string) []string { entries, _ := os.ReadDir(path); names := make([]string, len(entries)); for i, e := range entries { names[i] = e.Name() }; return names },
-		"getenv":   func(name string) string { return os.Getenv(name) },
-		"setenv":   func(name, value string) error { return os.Setenv(name, value) },
-		"name":     runtime.GOOS,
-		"sep":      string(filepath.Separator),
+		"listdir": func(path string) []string {
+			entries, _ := os.ReadDir(path)
+			names := make([]string, len(entries))
+			for i, e := range entries {
+				names[i] = e.Name()
+			}
+			return names
+		},
+		"getenv": func(name string) string { return os.Getenv(name) },
+		"setenv": func(name, value string) error { return os.Setenv(name, value) },
+		"name":   runtime.GOOS,
+		"sep":    string(filepath.Separator),
 	}
 }
 
@@ -90,34 +97,113 @@ func (p *PythonStdLib) initSys() {
 
 func (p *PythonStdLib) initBuiltins() {
 	p.builtins = map[string]interface{}{
-		"len":     func(x interface{}) int { return 0 }, // Implemented in VM
-		"print":   func(args ...interface{}) {},          // Implemented in VM
-		"range":   func(start, end int) []int { r := []int{}; for i := start; i < end; i++ { r = append(r, i) }; return r },
-		"str":     func(x interface{}) string { return fmt.Sprintf("%v", x) },
-		"int":     func(x interface{}) int { return 0 },  // Implemented in VM
-		"float":   func(x interface{}) float64 { return 0 },
-		"bool":    func(x interface{}) bool { return x != nil && x != false && x != 0 && x != "" },
-		"list":    func() []interface{} { return make([]interface{}, 0) },
-		"dict":    func() map[string]interface{} { return make(map[string]interface{}) },
-		"set":     func() map[interface{}]bool { return make(map[interface{}]bool) },
-		"tuple":   func(args ...interface{}) []interface{} { return args },
-		"sum":     func(x []interface{}) float64 { s := 0.0; for _, v := range x { if f, ok := v.(float64); ok { s += f } else if i, ok := v.(int); ok { s += float64(i) } }; return s },
-		"min":     func(x ...interface{}) interface{} { if len(x) == 0 { return nil }; m := x[0]; for _, v := range x[1:] { if less(v, m) { m = v } }; return m },
-		"max":     func(x ...interface{}) interface{} { if len(x) == 0 { return nil }; m := x[0]; for _, v := range x[1:] { if less(m, v) { m = v } }; return m },
-		"abs":     func(x interface{}) interface{} { if i, ok := x.(int); ok { if i < 0 { return -i }; return i }; if f, ok := x.(float64); ok { return math.Abs(f) }; return x },
-		"round":   func(x float64, n int) int { return int(math.Round(x)) },
-		"sorted":  func(x []interface{}) []interface{} { r := make([]interface{}, len(x)); copy(r, x); sort(r); return r },
-		"reversed": func(x []interface{}) []interface{} { r := make([]interface{}, len(x)); for i, v := range x { r[len(x)-1-i] = v }; return r },
-		"enumerate": func(x []interface{}) [][2]interface{} { r := make([][2]interface{}, len(x)); for i, v := range x { r[i] = [2]interface{}{i, v} }; return r },
-		"zip":     func(args ...[]interface{}) [][]interface{} { if len(args) == 0 { return nil }; min := len(args[0]); for _, a := range args { if len(a) < min { min = len(a) } }; r := make([][]interface{}, min); for i := 0; i < min; i++ { r[i] = make([]interface{}, len(args)); for j, a := range args { r[i][j] = a[i] } }; return r },
-		"type":    func(x interface{}) string { return fmt.Sprintf("<class '%T'>", x) },
-		"id":      func(x interface{}) int { return 0 }, // Placeholder
-		"hash":    func(x interface{}) int { return 0 }, // Placeholder
-		"repr":    func(x interface{}) string { return fmt.Sprintf("%v", x) },
-		"input":   func(prompt string) string { fmt.Print(prompt); var s string; fmt.Scanln(&s); return s },
-		"open":    func(filename, mode string) interface{} { return &File{filename: filename, mode: mode} },
-		"exec":    func(code string) error { return fmt.Errorf("exec not supported") },
-		"eval":    func(expr string) interface{} { return nil },
+		"len":   func(x interface{}) int { return 0 }, // Implemented in VM
+		"print": func(args ...interface{}) {},         // Implemented in VM
+		"range": func(start, end int) []int {
+			r := []int{}
+			for i := start; i < end; i++ {
+				r = append(r, i)
+			}
+			return r
+		},
+		"str":   func(x interface{}) string { return fmt.Sprintf("%v", x) },
+		"int":   func(x interface{}) int { return 0 }, // Implemented in VM
+		"float": func(x interface{}) float64 { return 0 },
+		"bool":  func(x interface{}) bool { return x != nil && x != false && x != 0 && x != "" },
+		"list":  func() []interface{} { return make([]interface{}, 0) },
+		"dict":  func() map[string]interface{} { return make(map[string]interface{}) },
+		"set":   func() map[interface{}]bool { return make(map[interface{}]bool) },
+		"tuple": func(args ...interface{}) []interface{} { return args },
+		"sum": func(x []interface{}) float64 {
+			s := 0.0
+			for _, v := range x {
+				if f, ok := v.(float64); ok {
+					s += f
+				} else if i, ok := v.(int); ok {
+					s += float64(i)
+				}
+			}
+			return s
+		},
+		"min": func(x ...interface{}) interface{} {
+			if len(x) == 0 {
+				return nil
+			}
+			m := x[0]
+			for _, v := range x[1:] {
+				if less(v, m) {
+					m = v
+				}
+			}
+			return m
+		},
+		"max": func(x ...interface{}) interface{} {
+			if len(x) == 0 {
+				return nil
+			}
+			m := x[0]
+			for _, v := range x[1:] {
+				if less(m, v) {
+					m = v
+				}
+			}
+			return m
+		},
+		"abs": func(x interface{}) interface{} {
+			if i, ok := x.(int); ok {
+				if i < 0 {
+					return -i
+				}
+				return i
+			}
+			if f, ok := x.(float64); ok {
+				return math.Abs(f)
+			}
+			return x
+		},
+		"round":  func(x float64, n int) int { return int(math.Round(x)) },
+		"sorted": func(x []interface{}) []interface{} { r := make([]interface{}, len(x)); copy(r, x); sort(r); return r },
+		"reversed": func(x []interface{}) []interface{} {
+			r := make([]interface{}, len(x))
+			for i, v := range x {
+				r[len(x)-1-i] = v
+			}
+			return r
+		},
+		"enumerate": func(x []interface{}) [][2]interface{} {
+			r := make([][2]interface{}, len(x))
+			for i, v := range x {
+				r[i] = [2]interface{}{i, v}
+			}
+			return r
+		},
+		"zip": func(args ...[]interface{}) [][]interface{} {
+			if len(args) == 0 {
+				return nil
+			}
+			min := len(args[0])
+			for _, a := range args {
+				if len(a) < min {
+					min = len(a)
+				}
+			}
+			r := make([][]interface{}, min)
+			for i := 0; i < min; i++ {
+				r[i] = make([]interface{}, len(args))
+				for j, a := range args {
+					r[i][j] = a[i]
+				}
+			}
+			return r
+		},
+		"type":  func(x interface{}) string { return fmt.Sprintf("<class '%T'>", x) },
+		"id":    func(x interface{}) int { return 0 }, // Placeholder
+		"hash":  func(x interface{}) int { return 0 }, // Placeholder
+		"repr":  func(x interface{}) string { return fmt.Sprintf("%v", x) },
+		"input": func(prompt string) string { fmt.Print(prompt); var s string; fmt.Scanln(&s); return s },
+		"open":  func(filename, mode string) interface{} { return &File{filename: filename, mode: mode} },
+		"exec":  func(code string) error { return fmt.Errorf("exec not supported") },
+		"eval":  func(expr string) interface{} { return nil },
 	}
 }
 
@@ -200,73 +286,86 @@ func NewNodeStdLib() *NodeStdLib {
 
 func (n *NodeStdLib) init() {
 	n.modules["fs"] = map[string]interface{}{
-		"readFileSync": func(path string) string { data, _ := os.ReadFile(path); return string(data) },
+		"readFileSync":  func(path string) string { data, _ := os.ReadFile(path); return string(data) },
 		"writeFileSync": func(path, data string) error { return os.WriteFile(path, []byte(data), 0644) },
-		"existsSync":   func(path string) bool { _, err := os.Stat(path); return err == nil },
-		"mkdirSync":    func(path string) error { return os.Mkdir(path, 0755) },
-		"rmSync":       func(path string) error { return os.Remove(path) },
-		"renameSync":   func(old, new string) error { return os.Rename(old, new) },
-		"statSync":     func(path string) map[string]interface{} { info, err := os.Stat(path); if err != nil { return nil }; return map[string]interface{}{"isFile": !info.IsDir(), "isDirectory": info.IsDir(), "size": info.Size(), "mtime": info.ModTime().Unix()} },
-		"readdirSync":  func(path string) []string { entries, _ := os.ReadDir(path); names := make([]string, len(entries)); for i, e := range entries { names[i] = e.Name() }; return names },
+		"existsSync":    func(path string) bool { _, err := os.Stat(path); return err == nil },
+		"mkdirSync":     func(path string) error { return os.Mkdir(path, 0755) },
+		"rmSync":        func(path string) error { return os.Remove(path) },
+		"renameSync":    func(old, new string) error { return os.Rename(old, new) },
+		"statSync": func(path string) map[string]interface{} {
+			info, err := os.Stat(path)
+			if err != nil {
+				return nil
+			}
+			return map[string]interface{}{"isFile": !info.IsDir(), "isDirectory": info.IsDir(), "size": info.Size(), "mtime": info.ModTime().Unix()}
+		},
+		"readdirSync": func(path string) []string {
+			entries, _ := os.ReadDir(path)
+			names := make([]string, len(entries))
+			for i, e := range entries {
+				names[i] = e.Name()
+			}
+			return names
+		},
 	}
 
 	n.modules["path"] = map[string]interface{}{
-		"join":     func(parts ...string) string { return filepath.Join(parts...) },
-		"resolve":  func(parts ...string) string { p, _ := filepath.Abs(filepath.Join(parts...)); return p },
-		"dirname":  func(p string) string { return filepath.Dir(p) },
-		"basename": func(p string) string { return filepath.Base(p) },
-		"extname":  func(p string) string { return filepath.Ext(p) },
+		"join":       func(parts ...string) string { return filepath.Join(parts...) },
+		"resolve":    func(parts ...string) string { p, _ := filepath.Abs(filepath.Join(parts...)); return p },
+		"dirname":    func(p string) string { return filepath.Dir(p) },
+		"basename":   func(p string) string { return filepath.Base(p) },
+		"extname":    func(p string) string { return filepath.Ext(p) },
 		"isAbsolute": func(p string) bool { return filepath.IsAbs(p) },
 	}
 
 	n.modules["os"] = map[string]interface{}{
-		"platform":    func() string { return runtime.GOOS },
-		"arch":        func() string { return runtime.GOARCH },
-		"homedir":     func() string { d, _ := os.UserHomeDir(); return d },
-		"tmpdir":      func() string { return os.TempDir() },
-		"hostname":    func() string { h, _ := os.Hostname(); return h },
-		"uptime":      func() int64 { return int64(time.Since(time.Unix(0, 0)).Seconds()) },
-		"freemem":     func() int64 { return 0 }, // Placeholder
-		"totalmem":    func() int64 { return 0 }, // Placeholder
-		"cpus":        func() []map[string]interface{} { return []map[string]interface{}{} },
+		"platform":          func() string { return runtime.GOOS },
+		"arch":              func() string { return runtime.GOARCH },
+		"homedir":           func() string { d, _ := os.UserHomeDir(); return d },
+		"tmpdir":            func() string { return os.TempDir() },
+		"hostname":          func() string { h, _ := os.Hostname(); return h },
+		"uptime":            func() int64 { return int64(time.Since(time.Unix(0, 0)).Seconds()) },
+		"freemem":           func() int64 { return 0 }, // Placeholder
+		"totalmem":          func() int64 { return 0 }, // Placeholder
+		"cpus":              func() []map[string]interface{} { return []map[string]interface{}{} },
 		"networkInterfaces": func() map[string]interface{} { return map[string]interface{}{} },
 	}
 
 	n.modules["process"] = map[string]interface{}{
-		"argv":       []string{},
-		"env":        make(map[string]string),
-		"cwd":        func() string { d, _ := os.Getwd(); return d },
-		"chdir":      func(d string) error { return os.Chdir(d) },
-		"exit":       func(code int) { os.Exit(code) },
-		"pid":        os.Getpid(),
-		"ppid":       0,
-		"version":    runtime.Version(),
-		"platform":   runtime.GOOS,
-		"arch":       runtime.GOARCH,
-		"uptime":     func() int64 { return int64(time.Since(time.Unix(0, 0)).Seconds()) },
+		"argv":     []string{},
+		"env":      make(map[string]string),
+		"cwd":      func() string { d, _ := os.Getwd(); return d },
+		"chdir":    func(d string) error { return os.Chdir(d) },
+		"exit":     func(code int) { os.Exit(code) },
+		"pid":      os.Getpid(),
+		"ppid":     0,
+		"version":  runtime.Version(),
+		"platform": runtime.GOOS,
+		"arch":     runtime.GOARCH,
+		"uptime":   func() int64 { return int64(time.Since(time.Unix(0, 0)).Seconds()) },
 	}
 
 	n.modules["util"] = map[string]interface{}{
-		"log":       func(args ...interface{}) { fmt.Println(args...) },
-		"format":    func(format string, args ...interface{}) string { return fmt.Sprintf(format, args...) },
-		"inspect":   func(x interface{}) string { return fmt.Sprintf("%#v", x) },
-		"isArray":   func(x interface{}) bool { _, ok := x.([]interface{}); return ok },
+		"log":        func(args ...interface{}) { fmt.Println(args...) },
+		"format":     func(format string, args ...interface{}) string { return fmt.Sprintf(format, args...) },
+		"inspect":    func(x interface{}) string { return fmt.Sprintf("%#v", x) },
+		"isArray":    func(x interface{}) bool { _, ok := x.([]interface{}); return ok },
 		"isFunction": func(x interface{}) bool { _, ok := x.(func(...interface{}) interface{}); return ok },
 	}
 
 	n.modules["console"] = map[string]interface{}{
-		"log":    func(args ...interface{}) { fmt.Println(args...) },
-		"info":   func(args ...interface{}) { fmt.Println(args...) },
-		"warn":   func(args ...interface{}) { fmt.Fprintln(os.Stderr, args...) },
-		"error":  func(args ...interface{}) { fmt.Fprintln(os.Stderr, args...) },
-		"debug":  func(args ...interface{}) { fmt.Println(args...) },
-		"time":   func(label string) { /* Timer start */ },
+		"log":     func(args ...interface{}) { fmt.Println(args...) },
+		"info":    func(args ...interface{}) { fmt.Println(args...) },
+		"warn":    func(args ...interface{}) { fmt.Fprintln(os.Stderr, args...) },
+		"error":   func(args ...interface{}) { fmt.Fprintln(os.Stderr, args...) },
+		"debug":   func(args ...interface{}) { fmt.Println(args...) },
+		"time":    func(label string) { /* Timer start */ },
 		"timeEnd": func(label string) { /* Timer end */ },
-		"trace":  func(args ...interface{}) { /* Stack trace */ },
+		"trace":   func(args ...interface{}) { /* Stack trace */ },
 	}
 
 	n.modules["buffer"] = map[string]interface{}{
-		"from": func(data string) []byte { return []byte(data) },
+		"from":  func(data string) []byte { return []byte(data) },
 		"alloc": func(size int) []byte { return make([]byte, size) },
 	}
 
@@ -275,9 +374,9 @@ func (n *NodeStdLib) init() {
 	}
 
 	n.modules["stream"] = map[string]interface{}{
-		"Readable":   func() interface{} { return nil },
-		"Writable":   func() interface{} { return nil },
-		"Transform":  func() interface{} { return nil },
+		"Readable":  func() interface{} { return nil },
+		"Writable":  func() interface{} { return nil },
+		"Transform": func() interface{} { return nil },
 	}
 
 	n.modules["http"] = map[string]interface{}{
@@ -287,46 +386,64 @@ func (n *NodeStdLib) init() {
 	}
 
 	n.modules["child_process"] = map[string]interface{}{
-		"exec":   func(cmd string, callback func(error, string, string)) { /* Execute command */ },
-		"spawn":  func(cmd string, args []string) interface{} { return nil },
-		"fork":   func(module string) interface{} { return nil },
+		"exec":  func(cmd string, callback func(error, string, string)) { /* Execute command */ },
+		"spawn": func(cmd string, args []string) interface{} { return nil },
+		"fork":  func(module string) interface{} { return nil },
 	}
 
 	n.modules["crypto"] = map[string]interface{}{
 		"createHash": func(algo string) *Hash { return &Hash{algo: algo} },
-		"randomBytes": func(size int) []byte { b := make([]byte, size); for i := range b { b[i] = byte(time.Now().UnixNano() % 256) }; return b },
+		"randomBytes": func(size int) []byte {
+			b := make([]byte, size)
+			for i := range b {
+				b[i] = byte(time.Now().UnixNano() % 256)
+			}
+			return b
+		},
 	}
 
 	n.modules["url"] = map[string]interface{}{
-		"parse":    func(u string) map[string]string { return map[string]string{"href": u} },
-		"format":   func(parts map[string]string) string { return parts["href"] },
-		"URL":      func(u string) map[string]string { return map[string]string{"href": u} },
+		"parse":  func(u string) map[string]string { return map[string]string{"href": u} },
+		"format": func(parts map[string]string) string { return parts["href"] },
+		"URL":    func(u string) map[string]string { return map[string]string{"href": u} },
 	}
 
 	n.modules["querystring"] = map[string]interface{}{
-		"parse":  func(s string) map[string]string { return map[string]string{} },
+		"parse":     func(s string) map[string]string { return map[string]string{} },
 		"stringify": func(obj map[string]string) string { return "" },
 	}
 
 	n.modules["assert"] = map[string]interface{}{
-		"ok":       func(x interface{}, msg string) { if x == nil || x == false { panic(msg) } },
-		"equal":    func(a, b interface{}, msg string) { if a != b { panic(msg) } },
-		"deepEqual": func(a, b interface{}, msg string) { if fmt.Sprintf("%v", a) != fmt.Sprintf("%v", b) { panic(msg) } },
+		"ok": func(x interface{}, msg string) {
+			if x == nil || x == false {
+				panic(msg)
+			}
+		},
+		"equal": func(a, b interface{}, msg string) {
+			if a != b {
+				panic(msg)
+			}
+		},
+		"deepEqual": func(a, b interface{}, msg string) {
+			if fmt.Sprintf("%v", a) != fmt.Sprintf("%v", b) {
+				panic(msg)
+			}
+		},
 	}
 
 	n.modules["timers"] = map[string]interface{}{
-		"setTimeout":  func(fn func(), delay int) int { return 0 },
-		"setInterval": func(fn func(), delay int) int { return 0 },
-		"clearTimeout": func(id int) {},
+		"setTimeout":    func(fn func(), delay int) int { return 0 },
+		"setInterval":   func(fn func(), delay int) int { return 0 },
+		"clearTimeout":  func(id int) {},
 		"clearInterval": func(id int) {},
-		"setImmediate": func(fn func()) {},
+		"setImmediate":  func(fn func()) {},
 	}
 
 	n.modules["module"] = map[string]interface{}{
-		"exports":    make(map[string]interface{}),
-		"require":    func(name string) map[string]interface{} { return n.GetModule(name) },
-		"filename":   "",
-		"dirname":    "",
+		"exports":  make(map[string]interface{}),
+		"require":  func(name string) map[string]interface{} { return n.GetModule(name) },
+		"filename": "",
+		"dirname":  "",
 	}
 }
 

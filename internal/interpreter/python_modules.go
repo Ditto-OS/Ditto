@@ -10,20 +10,20 @@ import (
 func (vm *pythonVM) handleImport(moduleName string) error {
 	// Clean up the module name by trimming whitespace
 	moduleName = strings.TrimSpace(moduleName)
-	
+
 	// Handle "import X as Y" or "import X.Y"
 	// Check for "as" alias
 	asAlias := ""
 	baseModule := moduleName
-	
+
 	if idx := strings.Index(moduleName, " as "); idx > 0 {
 		baseModule = strings.TrimSpace(moduleName[:idx])
 		asAlias = strings.TrimSpace(moduleName[idx+4:])
 	}
-	
+
 	// Handle dotted module names (e.g., "requests.api")
 	modulePath := strings.ReplaceAll(baseModule, ".", "/")
-	
+
 	// First check stdlib (only for non-dotted names)
 	if !strings.Contains(baseModule, ".") {
 		module := vm.stdlib.GetModule(baseModule)
@@ -41,7 +41,7 @@ func (vm *pythonVM) handleImport(moduleName string) error {
 	if vm.vfs != nil {
 		// Try to find module package (__init__.py)
 		fullPath := modulePath + "/__init__.py"
-		
+
 		if file, err := vm.vfs.Open(fullPath); err == nil {
 			file.Close()
 			targetName := asAlias

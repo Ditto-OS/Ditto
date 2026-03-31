@@ -8,11 +8,11 @@ import (
 
 // Config holds the application configuration
 type Config struct {
-	TempDir       string
-	RuntimesDir   string
-	CacheDir      string
-	TargetOS      string
-	TargetArch    string
+	TempDir     string
+	RuntimesDir string
+	CacheDir    string
+	TargetOS    string
+	TargetArch  string
 }
 
 // RuntimeInfo describes a bundled runtime
@@ -30,11 +30,11 @@ func Default() *Config {
 	runtimesDir := filepath.Join(os.TempDir(), "Ditto-runtimes")
 
 	return &Config{
-		TempDir:      filepath.Join(os.TempDir(), "Ditto"),
-		RuntimesDir:  runtimesDir,
-		CacheDir:     cacheDir,
-		TargetOS:     runtime.GOOS,
-		TargetArch:   runtime.GOARCH,
+		TempDir:     filepath.Join(os.TempDir(), "Ditto"),
+		RuntimesDir: runtimesDir,
+		CacheDir:    cacheDir,
+		TargetOS:    runtime.GOOS,
+		TargetArch:  runtime.GOARCH,
 	}
 }
 

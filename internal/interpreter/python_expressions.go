@@ -26,7 +26,7 @@ func (vm *pythonVM) evaluate(expr string) (interface{}, error) {
 				if pyFn, ok := fn.(*pythonFunction); ok {
 					return vm.callPythonFunction(pyFn, argsStr)
 				}
-				
+
 				// Call the function with arguments
 				switch f := fn.(type) {
 				case func(string) interface{}:

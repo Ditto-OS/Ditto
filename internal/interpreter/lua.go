@@ -20,10 +20,10 @@ func (l *LuaInterpreter) Execute(engine *Engine, code string, args []string, std
 	lua := &luaVM{
 		variables: make(map[string]interface{}),
 		functions: make(map[string]*luaFunction),
-		stdin:   stdin,
-		stdout:  stdout,
-		stderr:  stderr,
-		args:    args,
+		stdin:     stdin,
+		stdout:    stdout,
+		stderr:    stderr,
+		args:      args,
 	}
 
 	return lua.Run(code)
@@ -39,9 +39,9 @@ type luaVM struct {
 }
 
 type luaFunction struct {
-	name string
+	name   string
 	params []string
-	body string
+	body   string
 }
 
 func (vm *luaVM) Run(code string) error {
@@ -53,7 +53,7 @@ func (vm *luaVM) executeLines(lines []string) error {
 	i := 0
 	for i < len(lines) {
 		line := strings.TrimSpace(lines[i])
-		
+
 		// Skip empty lines and comments
 		if line == "" || strings.HasPrefix(line, "--") {
 			i++
@@ -185,9 +185,9 @@ func (vm *luaVM) handleFunctionDef(name, params string, lineNum int) (int, error
 	// Simplified - would need to collect body until "end"
 	paramList := vm.parseParams(params)
 	vm.functions[name] = &luaFunction{
-		name: name,
+		name:   name,
 		params: paramList,
-		body: "",
+		body:   "",
 	}
 	return lineNum + 1, nil
 }

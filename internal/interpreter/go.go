@@ -29,10 +29,10 @@ func (g *GoInterpreter) Execute(engine *Engine, code string, args []string, stdi
 	goVM := &goVM{
 		variables: make(map[string]interface{}),
 		functions: make(map[string]*goFunction),
-		stdin:   stdin,
-		stdout:  stdout,
-		stderr:  stderr,
-		args:    args,
+		stdin:     stdin,
+		stdout:    stdout,
+		stderr:    stderr,
+		args:      args,
 	}
 
 	// Walk the AST and execute
@@ -53,10 +53,10 @@ func (g *GoInterpreter) executeSimple(code string, args []string, stdin io.Reade
 	goVM := &goVM{
 		variables: make(map[string]interface{}),
 		functions: make(map[string]*goFunction),
-		stdin:   stdin,
-		stdout:  stdout,
-		stderr:  stderr,
-		args:    args,
+		stdin:     stdin,
+		stdout:    stdout,
+		stderr:    stderr,
+		args:      args,
 	}
 
 	return goVM.Run(code)
@@ -85,10 +85,10 @@ func (vm *goVM) Run(code string) error {
 func (vm *goVM) executeLines(lines []string) error {
 	for i, line := range lines {
 		line = strings.TrimSpace(line)
-		
+
 		// Skip empty lines, comments, package/import declarations
-		if line == "" || strings.HasPrefix(line, "//") || 
-		   strings.HasPrefix(line, "package ") || strings.HasPrefix(line, "import ") {
+		if line == "" || strings.HasPrefix(line, "//") ||
+			strings.HasPrefix(line, "package ") || strings.HasPrefix(line, "import ") {
 			continue
 		}
 
@@ -147,7 +147,7 @@ func (vm *goVM) handleFmtPrintln(line string) {
 
 	argsStr := line[start+1 : end]
 	args := vm.parseArgs(argsStr)
-	
+
 	for i, arg := range args {
 		if i > 0 {
 			fmt.Fprint(vm.stdout, " ")
@@ -166,7 +166,7 @@ func (vm *goVM) handleFmtPrintf(line string) {
 
 	argsStr := line[start+1 : end]
 	args := vm.parseArgs(argsStr)
-	
+
 	if len(args) > 0 {
 		format := args[0]
 		values := make([]interface{}, len(args[1:]))
@@ -186,7 +186,7 @@ func (vm *goVM) handleFmtPrint(line string) {
 
 	argsStr := line[start+1 : end]
 	args := vm.parseArgs(argsStr)
-	
+
 	for _, arg := range args {
 		fmt.Fprint(vm.stdout, arg)
 	}
@@ -274,8 +274,8 @@ func (vm *goVM) evaluate(expr string) string {
 
 	// Try to parse as number
 	if expr == "0" || expr == "1" || expr == "2" || expr == "3" || expr == "4" ||
-	   expr == "5" || expr == "6" || expr == "7" || expr == "8" || expr == "9" ||
-	   expr == "10" || expr == "42" || expr == "100" {
+		expr == "5" || expr == "6" || expr == "7" || expr == "8" || expr == "9" ||
+		expr == "10" || expr == "42" || expr == "100" {
 		return expr
 	}
 

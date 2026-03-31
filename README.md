@@ -2,8 +2,7 @@
 
 **The Universal Translator & Package Manager**
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/Ditto-OS/Ditto)](https://goreportcard.com/report/github.com/Ditto-OS/Ditto) `A+`
-
+[![Go Report Card](https://goreportcard.com/badge/github.com/Ditto-OS/Ditto)](https://goreportcard.com/report/github.com/Ditto-OS/Ditto) 
 A single, portable ~10MB binary that runs code from any language AND manages packages from any registry without requiring users to install runtimes.
 
 ## The Magic
